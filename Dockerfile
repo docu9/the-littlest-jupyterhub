@@ -44,7 +44,7 @@ RUN python3 -m venv $TLJH_INSTALL_PREFIX/hub
 
 #WORKDIR /data
 
-#RUN git clone https://github.com/jupyterhub/the-littlest-jupyterhub.git
+
 
 RUN mkdir $TLJH_INSTALL_PREFIX/hub/etc
 
@@ -54,7 +54,8 @@ RUN echo "[global]\n\ttimeout = 60\n\tindex-url = https://nexus.o1.dc9.kr/reposi
 RUN $TLJH_INSTALL_PREFIX/hub/bin/pip install wheel
 
 # RUN curl https://repo.continuum.io/miniconda/Miniconda3-{}-Linux-x86_64.sh |bash
-COPY . /srv/src
+# COPY . /srv/src
+RUN git clone https://github.com/docu9/the-littlest-jupyterhub.git  /srv/src
 
 RUN $TLJH_INSTALL_PREFIX/hub/bin/pip \
     install \
@@ -69,5 +70,6 @@ RUN $TLJH_INSTALL_PREFIX/hub/bin/python3 \
 #RUN systemctl start traefik
 #RUN systemctl start jupyterhub
 
-CMD ["/bin/bash", "-c", "exec /sbin/init --log-target=journal 3>&1"]
+# CMD ["/bin/bash", "-c", "exec /sbin/init --log-target=journal 3>&1"]
+CMD ["/usr/sbin/init"]
 # python3 /srv/src/bootstrap/bootstrap.py --admin admin
