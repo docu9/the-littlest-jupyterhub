@@ -129,7 +129,7 @@ def ensure_jupyterhub_service(prefix):
     os.makedirs(STATE_DIR, mode=0o700, exist_ok=True)
 
     remove_chp()
-    systemd.reload_daemon()
+    # systemd.reload_daemon()
 
     with open(os.path.join(HERE, 'systemd-units', 'jupyterhub.service')) as f:
         hub_unit_template = f.read()
@@ -153,15 +153,15 @@ def ensure_jupyterhub_service(prefix):
     )
     systemd.install_unit('jupyterhub.service', hub_unit_template.format(**unit_params))
     systemd.install_unit('traefik.service', traefik_unit_template.format(**unit_params))
-    systemd.reload_daemon()
+    # systemd.reload_daemon()
 
     # If JupyterHub is running, we want to restart it.
-    systemd.restart_service('jupyterhub')
-    systemd.restart_service('traefik')
+    #systemd.restart_service('jupyterhub')
+    #systemd.restart_service('traefik')
 
     # Mark JupyterHub & traefik to start at boot time
-    systemd.enable_service('jupyterhub')
-    systemd.enable_service('traefik')
+    #systemd.enable_service('jupyterhub')
+    #systemd.enable_service('traefik')
 
 
 def ensure_jupyterlab_extensions():
@@ -465,11 +465,18 @@ def main():
     ensure_user_environment(args.user_requirements_txt_url)
 
     logger.info("Setting up JupyterHub...")
+
+    logger.info("Setting up JupyterHub...  node")
     ensure_node()
+    logger.info("Setting up JupyterHub...  package")
     ensure_jupyterhub_package(HUB_ENV_PREFIX)
+    logger.info("Setting up JupyterHub...  extenstion")
     ensure_jupyterlab_extensions()
+    logger.info("Setting up JupyterHub...  service")
     ensure_jupyterhub_service(HUB_ENV_PREFIX)
-    ensure_jupyterhub_running()
+    logger.info("Setting up JupyterHub...  running")
+    # ensure_jupyterhub_running()
+    logger.info("Setting up JupyterHub...  link")
     ensure_symlinks(HUB_ENV_PREFIX)
 
     # Run installer plugins last
