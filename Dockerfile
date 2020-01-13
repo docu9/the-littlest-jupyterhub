@@ -50,7 +50,7 @@ RUN mkdir $TLJH_INSTALL_PREFIX/hub/etc
 
 # setup pip
 RUN echo "[global]\n\ttimeout = 60\n\tindex-url = https://nexus.o1.dc9.kr/repository/pypi/simple\n\tindex= https://nexus.o1.dc9.kr/repository/pypi\n" \
-        >> /etc/pip.conf
+    >> /etc/pip.conf
 RUN $TLJH_INSTALL_PREFIX/hub/bin/pip install wheel
 
 # RUN curl https://repo.continuum.io/miniconda/Miniconda3-{}-Linux-x86_64.sh |bash
@@ -78,15 +78,16 @@ COPY extra /srv/extra
 WORKDIR /srv/extra
 
 RUN yarn && yarn theia build
-ENV THEIA_PATH=srv/extra
+ENV THEIA_PATH=/srv/extra
 
 
+RUN sudo -E $TLJH_INSTALL_PREFIX/user/bin/pip install --upgrade jupyterlab
 
 # RUN systemctl start traefik
 #RUN systemctl start jupyterhub
 # hub/bin 과 user/bin 의 차이가 있다.
 # 여기서 부터
-RUN sudo -E $TLJH_INSTALL_PREFIX/user/bin/pip install --upgrade jupyterlab
+
 RUN sudo -E  $TLJH_INSTALL_PREFIX/user/bin/jupyter labextension update --all
 RUN sudo -E $TLJH_INSTALL_PREFIX/user/bin/jupyter labextension install @jupyterlab/git
 RUN sudo -E  $TLJH_INSTALL_PREFIX/user/bin/pip install jupyterlab_sql
@@ -99,13 +100,19 @@ RUN sudo -E  $TLJH_INSTALL_PREFIX/user/bin/pip install jupyterlab_sql
 # for jupyter server proxy  [ rstudio , theia, shiny]
 
 RUN git clone https://github.com/docu9/jupyter-server-proxy.git /srv/jupyter-server-proxy
+RUN $TLJH_INSTALL_PREFIX/user/bin/pip install /srv/jupyter-server-proxy
+RUN $TLJH_INSTALL_PREFIX/user/bin/pip install /srv/jupyter-server-proxy/contrib/theia
+RUN $TLJH_INSTALL_PREFIX/user/bin/jupyter serverextension enable --sys-prefix jupyter_server_proxy
 WORKDIR /srv/jupyter-server-proxy/jupyterlab-server-proxy
 RUN  npm i && npm run build 
-RUN $TLJH_INSTALL_PREFIX/user/bin/pip install /srv/jupyter-server-proxy
-#RUN $TLJH_INSTALL_PREFIX/user/bin/jupyter install @jupyterlab/server-proxy
-RUN sudo -E $TLJH_INSTALL_PREFIX/user/bin/jupyter lab build 
-RUN $TLJH_INSTALL_PREFIX/user/bin/jupyter serverextension enable --sys-prefix jupyter_server_proxy
+#RUN $TLJH_INSTALL_PREFIX/user/bin/jupyter labextension link .
+RUN $TLJH_INSTALL_PREFIX/user/bin/jupyter labextension install @jupyterlab/server-proxy
+#RUN sudo -E $TLJH_INSTALL_PREFIX/user/bin/jupyter lab build 
+
+
 # CMD ["/sbin/init && systemctl jupyterhub"]
 # python3 /srv/src/bootstrap/bootstrap.py --admin admin
 
-CMD ["/bin/bash", "-c", "exec /sbin/init --log-target=journal 3>&1"]
+#CMD ["/bin/bash", "-c", "exec /sbin/init --log-target=journal 3>&1"]
+
+CMD ["/bin/bash", "-c", "/opt/tljh/hub/bin/python3 -m jupyterhub.app -f /srv/src/tljh/jupyterhub_config.py --upgrade-db"]
