@@ -67,9 +67,45 @@ RUN $TLJH_INSTALL_PREFIX/hub/bin/python3 \
     tljh.installer \
     --admin admin
 
-#RUN systemctl start traefik
-#RUN systemctl start jupyterhub
 
-# CMD ["/bin/bash", "-c", "exec /sbin/init --log-target=journal 3>&1"]
-CMD ["/usr/sbin/init"]
+
+#for theia 
+RUN npm -g i yarn
+
+
+COPY extra /srv/extra
+
+WORKDIR /srv/extra
+
+RUN yarn && yarn theia build
+ENV THEIA_PATH=srv/extra
+
+
+
+# RUN systemctl start traefik
+#RUN systemctl start jupyterhub
+# hub/bin 과 user/bin 의 차이가 있다.
+# 여기서 부터
+RUN sudo -E $TLJH_INSTALL_PREFIX/user/bin/pip install --upgrade jupyterlab
+RUN sudo -E  $TLJH_INSTALL_PREFIX/user/bin/jupyter labextension update --all
+RUN sudo -E $TLJH_INSTALL_PREFIX/user/bin/jupyter labextension install @jupyterlab/git
+RUN sudo -E  $TLJH_INSTALL_PREFIX/user/bin/pip install jupyterlab_sql
+
+
+#### 여기까지 동작하지 않는다.
+
+
+
+# for jupyter server proxy  [ rstudio , theia, shiny]
+
+RUN git clone https://github.com/docu9/jupyter-server-proxy.git /srv/jupyter-server-proxy
+WORKDIR /srv/jupyter-server-proxy/jupyterlab-server-proxy
+RUN  npm i && npm run build 
+RUN $TLJH_INSTALL_PREFIX/user/bin/pip install /srv/jupyter-server-proxy
+#RUN $TLJH_INSTALL_PREFIX/user/bin/jupyter install @jupyterlab/server-proxy
+RUN sudo -E $TLJH_INSTALL_PREFIX/user/bin/jupyter lab build 
+RUN $TLJH_INSTALL_PREFIX/user/bin/jupyter serverextension enable --sys-prefix jupyter_server_proxy
+# CMD ["/sbin/init && systemctl jupyterhub"]
 # python3 /srv/src/bootstrap/bootstrap.py --admin admin
+
+CMD ["/bin/bash", "-c", "exec /sbin/init --log-target=journal 3>&1"]
