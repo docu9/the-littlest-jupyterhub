@@ -113,6 +113,6 @@ RUN $TLJH_INSTALL_PREFIX/user/bin/jupyter labextension install @jupyterlab/serve
 # CMD ["/sbin/init && systemctl jupyterhub"]
 # python3 /srv/src/bootstrap/bootstrap.py --admin admin
 
-#CMD ["/bin/bash", "-c", "exec /sbin/init --log-target=journal 3>&1"]
+CMD ["/bin/bash", "-c", "exec /sbin/init --log-target=journal 3>&1"]
 
-CMD ["/bin/bash", "-c", "/opt/tljh/hub/bin/python3 -m jupyterhub.app -f /srv/src/tljh/jupyterhub_config.py --upgrade-db"]
+#CMD ["/bin/bash", "-c", "/opt/tljh/hub/bin/python3 -m jupyterhub.app -f /srv/src/tljh/jupyterhub_config.py --upgrade-db"]
